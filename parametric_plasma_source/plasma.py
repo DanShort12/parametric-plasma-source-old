@@ -26,6 +26,7 @@ class Plasma():
                  shafranov_shift=0.0,
                  number_of_bins=100,
                  plasma_type=1,
+                 basis="xyz"
                  openmc_install_directory = '/opt/openmc/'
                  ):
 
@@ -47,6 +48,7 @@ class Plasma():
         self.shafranov_shift = shafranov_shift
         self.number_of_bins = number_of_bins
         self.plasma_type = plasma_type  # 0 = L mode anything else H/A mode
+        self.basis = basis
         self.openmc_install_directory = openmc_install_directory
 
         self.plasma_source_cpp_file = plasma_source_cpp
@@ -248,6 +250,17 @@ class Plasma():
             raise ValueError('ion_density_pedistal is out of range')
         else:
             self._ion_density_pedistal = ion_density_pedistal
+
+    @property
+    def basis(self):
+        return self._basis
+
+    @basis.setter
+    def basis(self, basis):
+        if basis not in ("xyz", "ry", "rz"):
+            raise ValueError('basis must be xyz, ry, or rz')
+        else:
+            self._basis = basis
 
     def replace_variable_value(
         self, input_strings, variable_name, new_value, is_cpp=True
