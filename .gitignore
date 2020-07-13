@@ -34,3 +34,15 @@ source_generator
 
 # Output files
 *.h5
+
+# Compiled Python
+*.pyc
+
+# Build path
+build/
+dist/
+*.egg-info/
+
+# Python
+__pycache__/
+*.py[cod]
