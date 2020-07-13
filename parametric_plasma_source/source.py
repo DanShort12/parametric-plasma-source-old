@@ -31,6 +31,7 @@ const double shafranov_shift = 0.0; //metres
 const std::string name = "parametric_plasma_source";
 const int number_of_bins  = 100;
 const int plasma_type = 1; // 1 is default; //0 = L mode anything else H/A mode
+const std::string basis = "xyz"; // xyz for 3D, ry or rz for 2D
 
 
 plasma_source::PlasmaSource source = plasma_source::PlasmaSource(ion_density_pedistal,
@@ -76,9 +77,28 @@ extern "C" openmc::Particle::Bank sample_source(uint64_t* seed) {
     source.SampleSource(randoms,particle.r.x,particle.r.y,particle.r.z,
                         u,v,w,E); 
 
+    // Convert m to cm
     particle.r.x *= 100.;
     particle.r.y *= 100.;
-    particle.r.z *= 100.;    
+    particle.r.z *= 100.;
+
+    if(basis == "xyz") {
+        // Use values as-is
+    }
+    else if(basis == "ry") {
+        particle.r.x = std::sqrt(std::pow(particle.r.x, 2) + std::pow(particle.r.y, 2));
+        particle.r.y = particle.r.z;
+        particle.r.z = 0.;
+    }
+    else if(basis == "rz") {
+        particle.r.x = std::sqrt(std::pow(particle.r.x, 2) + std::pow(particle.r.y, 2));
+        particle.r.y = 0.;
+        particle.r.z = particle.r.z;
+    }
+    else {
+        throw std::runtime_error("Parametric plasma source: incorrect basis provided, "
+                                 "please use xyz, ry, or rz.");
+    }
    
     // particle.E = 14.08e6;
     particle.E = E*1e6; // convert from MeV -> eV
@@ -259,7 +279,6 @@ void PlasmaSource::setup_plasma_source()
 {
   double ion_d; // ion density
   double ion_t; // ion temp
-
   std::vector<double> src_strength; // the source strength, n/m3
   double r;
 
@@ -525,7 +544,7 @@ endif
 
 default: all 
 
-ALL = source_sampling
+ALL = source_sampling source_generator
 # add your fortran depencies here
 FC_DEPS =
 # add your c dependencies here
@@ -547,9 +566,13 @@ LINK_FLAGS = $(OPT_LEVEL) -Wall -Wl,-soname,source_sampling.so
 # setting shared is important
 LINK_FLAGS += -L$(OPENMC_LIB_DIR) -lopenmc -lgfortran -fPIC -shared
 OPENMC_INCLUDES = -I$(OPENMC_INC_DIR) -I$(OPENMC_DIR)/vendor/pugixml
+HDF5_INCLUDES = -I/usr/include/hdf5/serial
 
 all: $(ALL) 
 
+source_generator: source_generator.cpp
+	$(CXX) source_generator.cpp $(OPENMC_INCLUDES) $(HDF5_INCLUDES) $(OPT_LEVEL) \
+	-L$(OPENMC_LIB_DIR) -lopenmc -lstdc++fs -o source_generator
 source_sampling: $(DEPS)
 	$(CXX) source_sampling.cpp $(DEPS) $(OPENMC_INCLUDES) $(LINK_FLAGS) -o $@.so 
 # make any fortran objects
@@ -562,6 +585,6 @@ source_sampling: $(DEPS)
 %.o : %.cpp
 	$(CXX) -c $(FFLAGS) $*.cpp -o $@
 clean: 
-	rm -rf *.o *.mod
+	rm -rf *.o *.mod *.so source_generator
 """
 )
