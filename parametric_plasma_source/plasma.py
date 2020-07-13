@@ -349,6 +349,7 @@ class Plasma():
             "shafranov_shift": self.shafranov_shift,
             "number_of_bins": self.number_of_bins,
             "plasma_type": self.plasma_type,
+            "basis": self.basis,
         }
 
         source_sampling_cpp_lines = self.source_sampling_cpp_file.split("\n")
