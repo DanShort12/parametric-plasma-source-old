@@ -26,7 +26,7 @@ class Plasma():
                  shafranov_shift=0.0,
                  number_of_bins=100,
                  plasma_type=1,
-                 basis="xyz"
+                 basis="xyz",
                  openmc_install_directory = '/opt/openmc/'
                  ):
 
