@@ -290,6 +290,8 @@ class Plasma():
             if all(str_to_find in string for str_to_find in strs_to_find):
                 equals_idx = string.find("=")
                 if equals_idx >= 0:
+                    if isinstance(new_value, str) and "\"" not in new_value:
+                        new_value = f"\"{new_value}\""
                     if is_cpp:
                         new_value = f"{new_value};"
                     input_strings[idx] = string.replace(
